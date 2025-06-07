@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "Utilities used by cookiecutter-robust-python for project initialization a general development processes"
 repository = "https://github.com/56kyle/cookiecutter-robust-python-util"
-license = "MIT OR Apache-2.0"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
