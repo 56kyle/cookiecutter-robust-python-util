@@ -1,8 +1,6 @@
 //! Utility commands used by cookiecutter-robust-python.
 use std::path::PathBuf;
-use std::process::Command;
 use clap::{Parser, Subcommand};
-use git2::{BranchType, Reference, Repository, StashCb};
 use cookiecutter_robust_python_util::setup_git_local::setup_git_local;
 
 #[derive(Parser, Debug)]
