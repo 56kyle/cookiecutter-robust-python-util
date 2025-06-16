@@ -13,10 +13,11 @@ pub fn setup_venv(path: PathBuf, python_version: String) -> eyre::Result<()> {
     match command.status.code() {
         Some(0) => {
             println!("Created venv at: {:?}", path);
+            Ok(())
         }
         _ => {
-            panic!(stringify!(command.stderr))
+            let msg = String::from_utf8(command.stderr).expect("Failed to parse stderr");
+            Err(eyre::eyre!(msg))
         }
     }
-    Ok(())
 }
