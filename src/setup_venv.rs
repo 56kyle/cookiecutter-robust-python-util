@@ -1,9 +1,7 @@
 use std::path::PathBuf;
 use std::process::Command;
 
-use uv_cli::VenvArgs;
-
-pub fn setup_venv(path: PathBuf, python_version: String) -> Result<(), Box<dyn std::error::Error>> {
+pub fn setup_venv(path: PathBuf, python_version: String) -> eyre::Result<()> {
     let command = Command::new("uv")
         .arg("venv")
         .arg(".venv")
@@ -22,4 +20,3 @@ pub fn setup_venv(path: PathBuf, python_version: String) -> Result<(), Box<dyn s
     }
     Ok(())
 }
-
