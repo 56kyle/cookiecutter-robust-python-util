@@ -1,7 +1,13 @@
+use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
 pub fn setup_venv(path: PathBuf, python_version: String) -> eyre::Result<()> {
+    let venv_path = path.join(".venv");
+    if venv_path.exists() {
+        fs::remove_dir_all(&venv_path).expect("Failed to remove existing .venv");
+    }
+
     let command = Command::new("uv")
         .arg("venv")
         .arg(".venv")
