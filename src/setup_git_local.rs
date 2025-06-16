@@ -4,7 +4,7 @@ use git2::build::CheckoutBuilder;
 
 
 /// Sets up the local git repo.
-pub fn setup_git_local(repo_folder: PathBuf) -> Result<(), git2::Error> {
+pub fn setup_git_local(repo_folder: PathBuf) -> eyre::Result<()> {
     let mut repo = match Repository::discover(&repo_folder) {
         Ok(repo) => repo,
         Err(_) => {
@@ -36,8 +36,8 @@ fn _get_or_create_repository(repo_folder: PathBuf) -> Repository {
 }
 
 /// Stashes local changes and then executes the provided function before unstashing the changes.
-fn _with_changes_stashed<F, T>(repo: &mut Repository, f: F) -> Result<T, git2::Error>
-where F: FnOnce(&mut Repository) -> Result<T, git2::Error> {
+fn _with_changes_stashed<F, T>(repo: &mut Repository, f: F) -> eyre::Result<T>
+where F: FnOnce(&mut Repository) -> eyre::Result<T> {
     let oid = _stash_local_changes(repo)
             .expect("Failed to stash local changes");
     let result = f(repo)
@@ -48,16 +48,22 @@ where F: FnOnce(&mut Repository) -> Result<T, git2::Error> {
 }
 
 /// Stash any local changes and return the Oid of the stash.
-fn _stash_local_changes(repo: &mut Repository) -> Result<git2::Oid, git2::Error>{
+fn _stash_local_changes(repo: &mut Repository) -> eyre::Result<git2::Oid>{
     println!("Stashing local changes...");
     let signature = repo.signature()
             .expect("Failed to get a signature for the repo");
     let message = "meta: temporary stash while running setup-git";
-    repo.stash_save(&signature, &message, None)
+    
+    match repo.stash_save(&signature, &message, None) {
+        Ok(oid) => Ok(oid),
+        Err(e) => {
+            panic!("Failed to stash local changes");
+        }
+    }
 }
 
 /// Unstash changes based on the Oid provided.
-fn _unstash_local_changes(repo: &mut Repository, oid: &git2::Oid) -> Result<(), git2::Error> {
+fn _unstash_local_changes(repo: &mut Repository, oid: &git2::Oid) -> eyre::Result<()> {
     let mut stash_index = None;
     repo.stash_foreach(|i, _, current_oid| {
         if current_oid == oid {
@@ -67,13 +73,15 @@ fn _unstash_local_changes(repo: &mut Repository, oid: &git2::Oid) -> Result<(), 
         return true
     }).expect("Failed to find a stash with the expected Oid");
     match stash_index {
-        Some(i) => {repo.stash_pop(i, None)},
+        Some(i) => {
+            Ok(repo.stash_pop(i, None).expect("Failed to unstash changes"))
+        },
         None => {panic!("Failed to find a stash with the expected Oid")}
     }
 }
 
 /// Checks out a branch using the provided branch_name and sets the HEAD to it.
-fn _checkout_branch(repo: &Repository, branch_name: &str) -> Result<(), git2::Error> {
+fn _checkout_branch(repo: &Repository, branch_name: &str) -> eyre::Result<()> {
     let full_reference = repo.find_reference(&format!("refs/heads/{}", branch_name))
             .expect(&format!("Failed to find the head of branch '{}'", branch_name));
     let object = full_reference.peel(ObjectType::Commit)
@@ -94,14 +102,14 @@ fn _checkout_branch(repo: &Repository, branch_name: &str) -> Result<(), git2::Er
 }
 
 /// Set up all desired branches for cookiecutter-robust-python.
-fn _setup_branches(repo: &mut Repository) -> Result<(), git2::Error>{
+fn _setup_branches(repo: &mut Repository) -> eyre::Result<()>{
     _setup_main_branch(repo).expect("Failed to set up branch 'main'");
     _setup_develop_branch(repo).expect("Failed to set up branch 'develop'");
     Ok(())
 }
 
 /// Set up the main branch.
-fn _setup_main_branch(repo: &Repository) -> Result<git2::Branch, git2::Error> {
+fn _setup_main_branch(repo: &Repository) -> eyre::Result<git2::Branch> {
     let master_branch = repo.find_branch("master", BranchType::Local).ok();
     let main_branch = repo.find_branch("main", BranchType::Local).ok();
 
@@ -127,7 +135,7 @@ fn _setup_main_branch(repo: &Repository) -> Result<git2::Branch, git2::Error> {
 }
 
 /// Set up the develop branch.
-fn _setup_develop_branch(repo: &Repository) -> Result<git2::Branch, git2::Error> {
+fn _setup_develop_branch(repo: &Repository) -> eyre::Result<git2::Branch> {
     _setup_branch_from_head(repo, "develop")
 }
 
@@ -135,7 +143,7 @@ fn _setup_develop_branch(repo: &Repository) -> Result<git2::Branch, git2::Error>
 fn _setup_branch_from_head<'repo>(
     repo: &'repo Repository,
     branch_name: &str
-) -> Result<git2::Branch<'repo>, git2::Error> {
+) -> eyre::Result<git2::Branch<'repo>> {
     println!("Creating branch '{}'...", branch_name);
     let head_ref = repo.head()
             .expect("Failed to get HEAD reference");
