@@ -43,8 +43,7 @@ fn setup_git_remote(
 
 
 fn setup_venv(
-    path: PathBuf,
-    python_version: String,
+
 ) -> Result<(), git2::Error> {
     println!("Repo not found at {:?}", path);
     Ok(())

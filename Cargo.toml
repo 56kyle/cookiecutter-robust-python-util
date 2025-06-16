@@ -11,3 +11,7 @@ license = "MIT"
 [dependencies]
 clap = { version = "4.5.39", features = ["derive"] }
 git2 = "0.20.2"
+uv = { git = "https://github.com/astral-sh/uv", version = "0.7.13" }
+uv-cli = { git = "https://github.com/astral-sh/uv", version = "0.0.1" }
+uv-python = { git = "https://github.com/astral-sh/uv", version = "0.0.1" }
+uv-virtualenv = { git = "https://github.com/astral-sh/uv", version = "0.0.4" }
